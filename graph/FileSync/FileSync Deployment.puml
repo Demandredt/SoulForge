@@ -1,0 +1,25 @@
+@startuml
+node "云服务器" {
+  artifact "Docker Host" as Host
+
+  frame "Docker Compose" {
+    [Nginx] as N #LightBlue
+    [Spring Boot App] as App #LightGreen
+    [MinIO] as M #Gold
+    [MySQL] as DB #Pink
+    [Redis] as R #Orange
+  }
+}
+
+N -left-> App : 反向代理\n(80→8080)
+App -down-> M : 9000端口
+App -down-> DB : 3306端口
+App -down-> R : 6379端口
+
+note top of Host
+  部署规范：
+  - 所有服务通过docker-compose编排
+  - MinIO配置持久化存储卷
+  - 启用nginx速率限制
+end note
+@enduml

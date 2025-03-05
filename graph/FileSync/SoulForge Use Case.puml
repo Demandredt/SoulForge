@@ -1,0 +1,36 @@
+@startuml
+left to right direction
+actor 用户 as User
+
+rectangle "文件同步模块" {
+  (上传新文件) as UC1
+  (自动监控目录) as UC2
+  (版本历史管理) as UC3
+  (文件分类处理) as UC4
+  (缩略图生成) as UC5
+
+  User --> UC1 : 手动上传
+  User --> UC2 : 设置监控路径
+  User --> UC3 : 查看/恢复历史版本
+  UC1 --> UC4 : 触发分类规则
+  UC2 --> UC4 : 自动触发
+  UC4 --> UC5 : 图片类型文件
+}
+
+note right of UC2
+  使用WatchService监控
+  指定目录变化
+end note
+
+note left of UC4
+  分类策略：
+  - 文档（doc/pdf）
+  - 图片（jpg/png）
+  - 代码（java/py）
+end note
+
+note bottom of UC5
+  使用Thumbnailator
+  生成缩略图
+end note
+@enduml

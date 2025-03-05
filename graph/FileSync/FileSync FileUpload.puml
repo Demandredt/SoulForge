@@ -1,0 +1,40 @@
+@startuml
+actor User as U
+participant "Web前端" as UI
+participant "Controller" as C
+participant "FileService" as FS
+participant "MinIO Client" as MC
+participant "MySQL" as DB
+
+U -> UI: 选择文件
+UI -> C: POST /api/upload
+activate C
+
+C -> FS: processUpload(file)
+activate FS
+
+FS -> MC: createMultipartUpload(bucket, object)
+MC --> FS: uploadId
+FS -> DB: insertUploadRecord(uploadId, status=IN_PROGRESS)
+FS --> C: uploadId
+
+C -> UI: 返回uploadId
+UI -> U: 显示上传准备完成
+
+loop 分块上传
+  U -> UI: 上传分块
+  UI -> C: PUT /api/upload/{uploadId}/part/{partNumber}
+  C -> FS: uploadPart(uploadId, partNumber, data)
+  FS -> MC: uploadPart(bucket, object, uploadId, partNumber, data)
+  MC --> FS: eTag
+  FS -> DB: updatePartInfo(uploadId, partNumber, eTag)
+end
+
+U -> UI: 完成上传
+UI -> C: POST /api/upload/{uploadId}/complete
+C -> FS: completeUpload(uploadId)
+FS -> MC: completeMultipartUpload(bucket, object, uploadId, parts)
+MC --> FS: finalETag
+FS -> DB: updateStatus(uploadId, status=COMPLETED, finalETag)
+FS -> DB: insertFileMetadata(...)
+@enduml

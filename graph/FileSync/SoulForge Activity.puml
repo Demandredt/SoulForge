@@ -1,0 +1,38 @@
+@startuml
+start
+:用户操作或系统监控;
+if (文件事件类型?) then (新增/修改)
+  :获取文件元数据;
+  fork
+    :[图片文件] 使用Thumbnailator压缩;
+    :生成缩略图;
+  fork again
+    :[代码/文档] 记录原始大小;
+  end fork
+
+  :创建MinIO分块上传任务;
+  repeat
+    :上传分块数据;
+  repeat while (剩余分块?) is (yes)
+  ->no;
+
+  if (上传成功?) then (yes)
+    :记录文件元数据到MySQL;
+      note right
+        fields:
+        - 文件ID
+        - 版本号
+        - MinIO路径
+        - 文件类型
+        - 创建时间
+      end note
+    :发送WebSocket通知;
+  else (no)
+    :记录失败日志到Redis队列;
+    :触发重试机制;
+  endif
+else (删除)
+  :标记文件为已删除状态;
+endif
+stop
+@enduml

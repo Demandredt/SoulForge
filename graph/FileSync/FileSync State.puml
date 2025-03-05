@@ -1,0 +1,20 @@
+@startuml
+[*] --> INITIALIZED : 创建上传任务
+
+INITIALIZED -> UPLOADING : 开始上传
+UPHOLDING --> UPLOADING : 重试分块
+
+state UPLOADING {
+  [*] -> PART_UPLOADED
+  PART_UPLOADED -> PART_UPLOADED : 继续上传分块
+  PART_UPLOADED -> COMPLETED : 所有分块完成
+}
+
+COMPLETED --> ARCHIVED : 超过30天未访问
+COMPLETED --> DELETED : 用户手动删除
+
+state DELETED {
+  [*] -> SOFT_DELETE
+  SOFT_DELETE -> PURGED : 保留期(7天)结束
+}
+@enduml

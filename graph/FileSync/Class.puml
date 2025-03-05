@@ -1,0 +1,35 @@
+@startuml
+class FileMetadata {
+  +String fileId
+  +String originalName
+  +FileType type
+  +UploadStatus status
+  +List<PartInfo> parts
+  +ZonedDateTime createdAt
+  +void addPart(PartInfo)
+}
+
+class PartInfo {
+  +int partNumber
+  +String eTag
+  +long size
+}
+
+enum FileType {
+  IMAGE
+  DOCUMENT
+  CODE
+  OTHER
+}
+
+enum UploadStatus {
+  INITIALIZED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+FileMetadata "1" *-- "1..*" PartInfo : contains
+FileMetadata "1" --> "1" FileType : type
+FileMetadata "1" --> "1" UploadStatus : status
+@enduml

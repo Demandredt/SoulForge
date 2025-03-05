@@ -1,0 +1,21 @@
+@startuml
+package "文件同步模块" {
+  [Spring Boot应用] as App
+  [MinIO存储] as MinIO
+  [MySQL元数据库] as MySQL
+  [Redis队列] as Redis
+}
+
+[用户] -> App : 上传/管理文件
+App --> MinIO : 分块上传文件\n(PUT /api/upload)
+App --> MySQL : 记录文件元数据\n(INSERT file_metadata)
+App --> Redis : 写入失败日志\n(LPUSH error_log)
+App --> Redis : 读取重试任务\n(BRPOP retry_queue)
+
+note right of MinIO
+  存储策略：
+  - 标准存储类型
+  - 自动版本控制
+  - 分片上传
+end note
+@enduml
