@@ -3,3 +3,14 @@ server:
 spring:
   application:
     name: SoulForge
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html # OpenAPI 原生 UI 路径（可选）
+    tags-sorter: alpha      # 接口按名称排序
+  api-docs:
+    path: /v3/api-docs      # OpenAPI JSON 描述文件路径
+knife4j:
+  enable: true              # 启用 Knife4j
+  setting:
+    language: zh-CN         # 中文
+    enable-footer: false    # 禁用页脚
