@@ -3,6 +3,11 @@ server:
 spring:
   application:
     name: SoulForge
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/soul_forge?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
 springdoc:
   swagger-ui:
     path: /swagger-ui.html # OpenAPI 原生 UI 路径（可选）
@@ -14,3 +19,14 @@ knife4j:
   setting:
     language: zh-CN         # 中文
     enable-footer: false    # 禁用页脚
+mybatis-plus:
+  configuration:
+    # 启用自动枚举映射
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+soul-forge:
+  minio:
+    accessKey: maphaze
+    secretKey: alice11037()
+    url: http://115.190.23.128:41547
+    bucket: soulforge
+

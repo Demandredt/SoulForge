@@ -5,7 +5,7 @@ import com.maphaze.soulforge.filesync.core.enums.UploadStatus;
 import io.minio.messages.Part;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.w3c.dom.stylesheets.LinkStyle;
+
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -24,14 +24,12 @@ public class FileMetaData {
     @Schema(description = "文件上传状态")
     private UploadStatus status;
 
-    @Schema(description = "分块信息列表")
-    private List<PartInfo> parts;
+    @Schema(description = "文件存储路径")
+    private String objectKey;
 
     @Schema(description = "创建时间")
     private ZonedDateTime createdAt;
 
 
-    public void addPart(PartInfo partInfo){
-        parts.add(partInfo);
-    }
+
 }

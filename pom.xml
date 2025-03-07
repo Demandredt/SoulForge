@@ -22,17 +22,30 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>8.5.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.squareup.okhttp3</groupId>
+                    <artifactId>okhttp</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.9.0</version>
+        </dependency>
+
 <!--        <dependency>-->
 <!--            <groupId>org.apache.shardingsphere</groupId>-->
 <!--            <artifactId>sharding-jdbc-spring-boot-starter</artifactId>-->
 <!--            <version>4.1.1</version>-->
 <!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.baomidou</groupId>-->
-<!--            <artifactId>mybatis-plus</artifactId>-->
-<!--            <version>3.4.3</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus</artifactId>
+            <version>3.4.3</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
