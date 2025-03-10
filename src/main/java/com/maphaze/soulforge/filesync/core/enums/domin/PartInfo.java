@@ -1,4 +1,4 @@
-package com.maphaze.soulforge.filesync.core.domin;
+package com.maphaze.soulforge.filesync.core.enums.domin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

@@ -1,4 +1,4 @@
-package com.maphaze.soulforge.filesync.core.domin;
+package com.maphaze.soulforge.filesync.core.enums.domin;
 
 import com.maphaze.soulforge.filesync.core.enums.FileType;
 import com.maphaze.soulforge.filesync.core.enums.UploadStatus;

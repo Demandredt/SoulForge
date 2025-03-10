@@ -1,8 +1,8 @@
 package com.maphaze.soulforge.filesync.service;
 
-import com.maphaze.soulforge.filesync.core.domin.FileMetaData;
 import com.maphaze.soulforge.filesync.core.entity.UploadTask;
 import com.maphaze.soulforge.filesync.core.enums.UploadStatus;
+import com.maphaze.soulforge.filesync.dto.request.InitUploadRequest;
 import com.maphaze.soulforge.filesync.mapper.UploadPartMapper;
 import com.maphaze.soulforge.filesync.mapper.UploadTaskMapper;
 import io.minio.MinioClient;
@@ -37,10 +37,22 @@ public class FileService {
          * @param filePartSize
          * @return
          */
-        public String initUpload(String filename,String originPath,String fileSize,Map<Integer,String> fileHash,String fileETag,String filePartNumber,String filePartSize){
+        public String initUpload(InitUploadRequest request){
+                String filename = request.getFilename();
+                String originPath = request.getFilepath();
+                Long fileSize = request.getFileSize();
+                Map<Integer, String> fileHash = request.getFilePartHash();
+                String fileETag = request.getFileETag();
+                Integer filePartNumber = request.getFilePartNumber();
+                Long filePartSize = request.getFilePartSize();
+
+
+
+//               生成随机的UploadId
                 String uploadId = String.valueOf(UUID.randomUUID());
 
 //                MINIO中的存储路径
+//                todo：根据用户id，在Minio存储桶中分配不同的路径
                 String objectKey = "/Admin"+originPath;
                 UploadTask uploadTask = new UploadTask(uploadId,
                         bucket,
@@ -50,6 +62,7 @@ public class FileService {
                         fileETag,
                         fileHash
                         );
+                System.out.println(uploadTask);
                 return uploadId;
         }
 

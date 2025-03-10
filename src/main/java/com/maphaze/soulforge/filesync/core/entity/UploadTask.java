@@ -1,6 +1,7 @@
 package com.maphaze.soulforge.filesync.core.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.maphaze.soulforge.filesync.core.enums.UploadStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,6 +15,7 @@ import java.util.Map;
 @TableName("upload_task")
 @Schema(description = "实体类，记录文件分块上传的总信息")
 public class UploadTask {
+    @TableId
     private String uploadId;
     private String bucket;
     private String objectKey;
