@@ -11,6 +11,13 @@ import lombok.Data;
 public class UploadPart {
     @TableId
     private String uploadId;
+
     private Integer partNumber;
     private String etag;
+
+    public UploadPart(String uploadId, Integer partNumber, String etag) {
+        this.uploadId = uploadId;
+        this.partNumber = partNumber;
+        this.etag = etag;
+    }
 }

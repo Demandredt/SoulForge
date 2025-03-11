@@ -2,6 +2,7 @@ package com.maphaze.soulforge.filesync.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Required;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -76,4 +77,7 @@ public class InitUploadRequest {
     @Positive(message = "分块大小必须为正整数")
     @Schema(description = "单个分块大小（字节）", example = "1048576")
     private Long filePartSize;
+
+    @Schema(description = "上传Id，如果非空说明需要断点续传")
+    private String uploadId;
 }

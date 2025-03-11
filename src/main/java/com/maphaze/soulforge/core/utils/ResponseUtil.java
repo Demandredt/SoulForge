@@ -54,6 +54,9 @@ public class ResponseUtil<T> {
     public static <T> ResponseUtil<T> success(){
         return new ResponseUtil<>(200,"ok",null);
     }
+    public static <T> ResponseUtil<T> success(String message){
+        return new ResponseUtil<>(200,message,null);
+    }
     public static <T> ResponseUtil<T> success(T data){
         return new ResponseUtil<>(200,"ok",data);
     }
