@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 默认日志路径：基于JAR所在目录的相对路径 -->
+    <property name="LOG_DIR" value="./logs" />
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+<!--        过滤输出，只有Info及以上会被输出到控制台-->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] 【%-5level】 %logger{36} => %msg%n</pattern>
+        </encoder>
+    </appender>
+<!--    <pattern>-->
+<!--        %d{yyyy-MM-dd HH:mm:ss.SSS}  # 日期时间（精确到毫秒）-->
+<!--        [%thread]                     # 线程名-->
+<!--        %-5level                      # 日志级别（左对齐，固定5字符宽度）-->
+<!--        %logger{36}                   # 类名（缩写至最长36字符）-->
+<!--        - %msg%n                      # 消息 + 换行-->
+<!--    </pattern>-->
+
+    <!-- 文件输出（带滚动策略） -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 按天归档并压缩 -->
+            <fileNamePattern>${LOG_DIR}/SoulForgeLog-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!-- 保留30天日志 -->
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] 【%-5level】 %logger{36} => %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+
+    <!-- 生产环境建议关闭DEBUG -->
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </root>
+
+</configuration>

@@ -12,6 +12,8 @@ import com.maphaze.soulforge.filesync.mapper.UploadTaskMapper;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
 @Service
+@Slf4j
 public class FileService {
 
         @Autowired
@@ -59,8 +62,9 @@ public class FileService {
                 String uploadId = String.valueOf(UUID.randomUUID());
 
 //                MINIO中的存储路径
-//                todo：根据用户id，在Minio存储桶中分配不同的路径
-                String objectKey = "/Admin"+originPath;
+//                todo：根据用户id，在Minio存储桶中分配不同的路径.注意这里Admin前不能有斜杠，应该放在admin后面
+                String objectKey = "Admin/"+originPath;
+                log.info("存储路径：{}",objectKey);
                 UploadTask uploadTask = new UploadTask(uploadId,
                         bucket,
                         objectKey,
@@ -91,7 +95,7 @@ public class FileService {
                 if (uploadTask == null){
                         return null;
                 }
-                Map<Integer, String> map = uploadPartMapper.selectFileUploadParts(uploadId);
+                Map<Integer, String> map = getUploadPartsMap(uploadId);
                 uploadTask.setParts(map);
                 return uploadTask;
         }
@@ -103,7 +107,7 @@ public class FileService {
          * @return
          */
         public Map<Integer,String> returnExistingParts(String uploadId){
-                Map<Integer,String> parts = uploadPartMapper.selectFileUploadParts(uploadId);
+                Map<Integer,String> parts = getUploadPartsMap(uploadId);
                 return parts;
         }
 
@@ -120,14 +124,17 @@ public class FileService {
                 MultipartFile file = request.getFile();
 
                 String crc32 = getCRC32(file);
+                log.debug("请求中的文件计算出的CRC32校验值{}",crc32);
 //                校验值不同则重传
                 if (!partHash.equals(crc32)){
+                        System.out.printf("校验值不同：计算：%s，请求中：%s\n",crc32,partHash);
                         return List.of(partNumber);
                 }
 
-                UploadTask uploadTask = uploadTaskMapper.selectById(uploadId);
+                UploadTask uploadTask = getUploadTaskFromDataBase(uploadId);
 
                 try {
+
                         minioclient.putObject(PutObjectArgs.builder()
                                 .bucket(bucket)
                                 .object(uploadTask.getObjectKey()+"_"+Integer.toString(partNumber))
@@ -143,7 +150,7 @@ public class FileService {
                 wrapper.eq("upload_id",uploadId).eq("part_number",partNumber);
                 uploadPartMapper.delete(wrapper);
                 List<Integer> list = new ArrayList<>();
-                uploadPartMapper.selectFileUploadParts(uploadId).forEach((key,value)-> {
+                getUploadPartsMap(uploadId).forEach((key,value)-> {
                         list.add(key);
                 });
         return list;
@@ -151,25 +158,29 @@ public class FileService {
         }
 
         /**
-         * 计算CRC32校验值
+         * 计算CRC32校验值，不反转，不异或
          * @param file 待校验的文件
          * @return
          */
-        public String getCRC32(MultipartFile file){
-                CRC32 crc32 = new CRC32();
-                try(InputStream in = file.getInputStream()){
-                        byte[] bytes = new byte[8192];
-                        int bytesRead = 0;
-                        while ((bytesRead=in.read(bytes))!=-1){
-                                crc32.update(bytes,0,bytesRead);
+        public String getCRC32(MultipartFile file) {
+                try (InputStream in = file.getInputStream()) {
+                        CRC32 crc32 = new CRC32();
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+
+
+                        while ((bytesRead = in.read(buffer)) != -1) {
+                                crc32.update(buffer, 0, bytesRead);
                         }
 
 
-                }catch (IOException e){
+                        long result = crc32.getValue();
+                        return Long.toString(result);
+
+                } catch (IOException e) {
                         System.out.println("CRC32校验时读取文件错误");
-                        e.printStackTrace();
+                        return "0";
                 }
-                return Long.toString(crc32.getValue());
         }
 
 
@@ -179,10 +190,10 @@ public class FileService {
          * @return 0代表校验失败，重新上传；1代表成功
          */
         public int composeFile(String uploadId){
-                UploadTask uploadTask = uploadTaskMapper.selectById(uploadId);
-//                先计算总的CRC校验值
+                UploadTask uploadTask = getUploadTaskFromDataBase(uploadId);
+//                先获取总的CRC校验值
                 CRC32 crc32 = new CRC32();
-                Long totalCrc = null;
+                Long totalCrc = Long.parseLong(uploadTask.getFinalEtag());
                 List<String> partsName = new ArrayList<>();
                 try {
                         for (Result<Item> result : minioclient.listObjects(ListObjectsArgs.builder()
@@ -197,7 +208,18 @@ public class FileService {
                         e.printStackTrace();
                 }
 
-                Collections.sort(partsName,Comparator.comparingInt(name -> Integer.parseInt(name.split("_")[1])));
+
+
+//                要考虑文件名中有_的情况
+//                partsName.sort(Comparator.comparingInt(name -> Integer.parseInt(name.split("_")[1])));
+
+                partsName.sort(Comparator.comparingInt(name -> {
+                        String[] parts = name.split("_");
+                        return Integer.parseInt(parts[parts.length - 1]); // 取最后一个元素
+                }));
+
+
+
                 for (String partName : partsName){
                         try(InputStream stream = minioclient.getObject(
                                 GetObjectArgs.builder()
@@ -227,12 +249,22 @@ public class FileService {
                         })
                         .collect(Collectors.toList());
                 try{
-//                todo:待加入根据用户变换存储空间
+//
                 minioclient.composeObject(ComposeObjectArgs.builder()
                         .bucket(bucket)
-                        .object("/Admin"+uploadTask.getObjectKey())
+                        .object(uploadTask.getObjectKey())
                         .sources(sources)
                         .build());
+
+//                删除分块文件
+                        for (String partName :partsName){
+                                minioclient.removeObject(
+                                        RemoveObjectArgs.builder()
+                                                .bucket(bucket)
+                                                .object(partName)
+                                                .build()
+                                );
+                        }
 
 
                 int bytesRead = 0;
@@ -240,7 +272,8 @@ public class FileService {
                 CRC32 crcTotal = new CRC32();
                 InputStream in = minioclient.getObject (GetObjectArgs.builder()
                         .bucket(bucket)
-                        .object("/Admin"+uploadTask.getObjectKey())
+
+                        .object(uploadTask.getObjectKey())
                         .build());
                 while ((bytesRead=in.read(buffer))!=-1){
                         crcTotal.update(buffer,0,bytesRead);
@@ -279,6 +312,20 @@ public class FileService {
                 );
                 return 0;
         }
+
+
+        /**
+         * 从数据库读取UploadPart为一个Map
+         * @param uploadId
+         * @return
+         */
+        public Map<Integer,String> getUploadPartsMap(String uploadId){
+                Map<Integer, UploadPart> uploadParts = uploadPartMapper.selectFileUploadParts(uploadId);
+
+                return uploadParts.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+                        entry->entry.getValue().getEtag()));
+        }
+
 
 
 

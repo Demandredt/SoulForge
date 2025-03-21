@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface UploadPartMapper extends BaseMapper<UploadPart> {
-    @Select("SELECT part_number, etag FROM upload_part WHERE upload_id = #{uploadId}")
-    @MapKey("part_number")
-    Map<Integer,String> selectFileUploadParts(String uploadId);
+    @Select("SELECT * FROM upload_part WHERE upload_id = #{uploadId}")
+    @MapKey("partNumber")
+    Map<Integer,UploadPart> selectFileUploadParts(String uploadId);
 }

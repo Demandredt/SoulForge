@@ -27,6 +27,15 @@ public class UploadTask {
     @TableField(exist = false)
     private Map<Integer,String> parts;
 
+    public UploadTask(String uploadId, String bucket, String objectKey, UploadStatus status, LocalDateTime createdAt, String finalEtag) {
+        this.uploadId = uploadId;
+        this.bucket = bucket;
+        this.objectKey = objectKey;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.finalEtag = finalEtag;
+    }
+
     public UploadTask(String uploadId, String bucket, String objectKey, UploadStatus status, LocalDateTime createdAt, String finalEtag, Map<Integer, String> parts) {
         this.uploadId = uploadId;
         this.bucket = bucket;
@@ -35,5 +44,6 @@ public class UploadTask {
         this.createdAt = createdAt;
         this.finalEtag = finalEtag;
         this.parts = parts;
+
     }
 }

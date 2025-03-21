@@ -5,17 +5,20 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "UploadStatus",description = "文件上传状态")
 public enum UploadStatus {
+    INITIALIZED("INITIALIZED"),
+    IN_PROGRESS("IN_PROGRESS"),
+    COMPLETED("COMPLETED"),
+    FAILED("FAILED"); // 注意分号
 
     @EnumValue
-    @Schema(description = "已经生成元数据，尚未上传")
-    INITIALIZED,
-    @EnumValue
-    @Schema(description = "分块上传中")
-    IN_PROGRESS,
-    @EnumValue
-    @Schema(description = "全部分块上传完成并且合并成功")
-    COMPLETED,
-    @EnumValue
-    @Schema(description = "上传失败")
-    FAILED
+    private final String dbValue; // 存储括号中的字符串
+
+    private UploadStatus(String dbValue) {
+        this.dbValue = dbValue;
+    }
+
+    // 若用 MyBatis-Plus，通过 @EnumValue 标记存储字段
+    public String getDbValue() {
+        return dbValue;
+    }
 }
